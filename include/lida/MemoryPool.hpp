@@ -9,6 +9,7 @@ namespace lida
 {
 	namespace detail
 	{
+		template<std::size_t ObjSize>
 		class MemoryChunk
 		{
 		private:
@@ -19,39 +20,57 @@ namespace lida
 			static constexpr uint8_t max = std::numeric_limits<uint8_t>::max();
 
 		public:
-			MemoryChunk(std::size_t objSize)
+			MemoryChunk()
 				: current(0), count(max)
 			{
-				data = new uint8_t[objSize * max];
+				data = new uint8_t[ObjSize * max];
 				for (std::size_t i = 0; i <= max; i++)
-					data[i * objSize] = i + 1;
+					data[i * ObjSize] = i + 1;
 			}
 			~MemoryChunk() noexcept
 			{
-				delete[] data;
+				if (data) delete[] data;
+			}
+			MemoryChunk(const MemoryChunk&) : MemoryChunk() {}
+			MemoryChunk(MemoryChunk&& rhs) noexcept
+				: data(rhs.data), current(rhs.current), count(rhs.count)
+			{
+				rhs.data = nullptr;
+			}
+			MemoryChunk& operator=(const MemoryChunk& rhs) noexcept 
+			{ 
+				this->~MemoryChunk();
+				new(this) MemoryChunk(rhs);
+				return *this;
+			}
+			MemoryChunk& operator=(MemoryChunk&& rhs) noexcept 
+			{ 
+				this->~MemoryChunk();
+				new(this) MemoryChunk(std::move(rhs));
+				return *this;
 			}
 
-			void* allocate(std::size_t objSize)
+			void* allocate()
 			{
 #ifndef NDEBUG
 				if (!has_space())
 					throw std::runtime_error("MemoryChunk:: out of storage");
 #endif
-				void* ptr = data + current * objSize;
-				current = data[current * objSize];
+				void* ptr = data + current * ObjSize;
+				current = data[current * ObjSize];
 				count--;
 				return ptr;
 			}
 
-			void deallocate(void* ptr, std::size_t objSize)
+			void deallocate(void* ptr)
 			{
 #ifndef NDEBUG
-				if (!contains(ptr, objSize))
+				if (!contains(ptr))
 					throw std::runtime_error("MemoryChunk:: passed invalid pointer to deallocate");
 #endif
 				auto bptr = reinterpret_cast<uint8_t*>(ptr);
 				*bptr = current;
-				current = (bptr - data) / objSize;
+				current = (bptr - data) / ObjSize;
 				count++;
 			}
 
@@ -60,10 +79,10 @@ namespace lida
 				return count != 0;
 			}
 
-			bool contains(void* ptr, std::size_t objSize) const noexcept
+			bool contains(void* ptr) const noexcept
 			{
 				auto bptr = reinterpret_cast<uint8_t*>(ptr);
-				return (bptr >= data) && (bptr < data + objSize * max);
+				return (bptr >= data) && (bptr < data + ObjSize * max);
 			}
 
 			bool is_free() const noexcept
@@ -75,57 +94,66 @@ namespace lida
 
 	/**
 	 * @brief STL compatible allocator which allocates and deallocates
-	 * single objects fast.
-	 * @detail Use this allocator with containers that live long and
+	 * single objects fast. This allocator shares memory between instances.
+	 * @detail Use this allocator with containers that live short and
 	 * allocate thousands of objects.
 	 * @tparam T allocating type.
 	 */
 	template<typename T>
-	class LocalMemoryPool
+	class MemoryPool
 	{
 	private:
-		std::vector<detail::MemoryChunk> chunks;
+		static auto& get_chunks()
+		{
+			static std::vector<detail::MemoryChunk<sizeof(T)>> chunks;
+			return chunks;
+		}
 
 	public:
 		using value_type = T;
 		template<typename U>
 		struct rebind
 		{
-			using type = LocalMemoryPool<U>;
+			using type = MemoryPool<U>;
 		};
 
+		MemoryPool() = default;
+		template<typename U>
+		MemoryPool(const MemoryPool<U>&) noexcept {}
+
 		/**
-		 * @brief Allocate an `T`.
+		 * @brief Allocate an object from shared storage.
 		 * @param size made for compability with std::allocator_traits.
 		 * passing `size != 1` is undefined behaviour.
-		 */
-		T* allocate(std::size_t size)
+			 */
+		static T* allocate(std::size_t size)
 		{
+			auto& chunks = get_chunks();
 #ifndef NDEBUG
 			if (size != 1)
 				throw std::runtime_error("MemoryPool is only able for single object allocations");
 #endif
 			for (auto& chunk : chunks)
 				if (chunk.has_space())
-					return reinterpret_cast<T*>(chunk.allocate(sizeof(T)));
-			chunks.emplace_back(sizeof(T));
-			return reinterpret_cast<T*>(chunks.back().allocate(sizeof(T)));
+					return reinterpret_cast<T*>(chunk.allocate());
+			chunks.emplace_back();
+			return reinterpret_cast<T*>(chunks.back().allocate());
 		}
 
 		/**
-		 * @brief Deallocate and `T`.
-		 * @param ptr pointer to object to deallocate.
+		 * @brief Deallocate an object from shared storage.
 		 * @param size made for compability with std::allocator_traits.
 		 * passing `size != 1` is undefined behaviour.
 		 */
-		void deallocate(T* ptr, [[maybe_unused]] std::size_t size)
+		static void deallocate(T* ptr, std::size_t size)
 		{
+			auto& chunks = get_chunks();
 			for (auto it = chunks.begin(); it != chunks.end(); ++it)
 			{
 				auto& chunk = *it;
-				if (chunk.contains(ptr, sizeof(T)))
+				if (chunk.contains(ptr))
 				{
-					chunk.deallocate(ptr, sizeof(T));
+					chunk.deallocate(ptr);
 					if (chunk.is_free()) 
 						chunks.erase(it);
 					return;
@@ -137,69 +165,15 @@ namespace lida
 		 * @brief Preallocate memory.
 		 * @param numElements minimal count of objects to preallocate.
 		 */
-		void reserve(std::size_t numElements)
+		static void reserve(std::size_t numElements)
 		{
+			auto& chunks = get_chunks();
 			if (numElements > chunks.size())
 			{
 				constexpr auto max = std::numeric_limits<uint8_t>::max();
 				chunks.resize((numElements % max == 0) ?
 							  numElements / max : numElements / max + 1);
 			}
-		}
-	};
-
-	/**
-	 * @brief STL compatible allocator which allocates and deallocates
-	 * single objects fast. This allocator shares memory between instances.
-	 * @detail Use this allocator with containers that live short and
-	 * allocate thousands of objects.
-	 * @tparam T allocating type.
-	 */
-	template<typename T>
-	class GlobalMemoryPool
-	{
-	private:
-		static auto& instance()
-		{
-			static LocalMemoryPool<T> singleton;
-			return singleton;
-		}
-
-	public:
-		using value_type = T;
-		template<typename U>
-		struct rebind
-		{
-			using type = GlobalMemoryPool<U>;
-		};
-
-		/**
-		 * @brief Allocate an object from shared storage.
-		 * @param size made for compability with std::allocator_traits.
-		 * passing `size != 1` is undefined behaviour.
-		 */
-		static T* allocate(std::size_t size)
-		{
-			return instance().allocate(size);
-		}
-
-		/**
-		 * @brief Deallocate an object from shared storage.
-		 * @param size made for compability with std::allocator_traits.
-		 * passing `size != 1` is undefined behaviour.
-		 */
-		static void deallocate(T* ptr, std::size_t size)
-		{
-			instance().deallocate(ptr, size);
-		}
-
-		/**
-		 * @brief Preallocate memory.
-		 * @param numElements minimal count of objects to preallocate.
-		 */
-		static void reserve(std::size_t numElements)
-		{
-			instance().reserve(numElements);		
 		}
 	};
 }
