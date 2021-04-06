@@ -3,7 +3,14 @@
 
 * C++ header only memory pool library
 
-- Small. 1 header file with 2 classes for usage: _lida::LocalMemoryPool_ and _lida::GlobalMemoryPool_.
-- STL compatible. It ideally works with _std::list_, _std::set_ and _std::map_.
-- Fast. You can even make it faster by preallocating memory with _reverse()_.
+- Small. 1 header file with 2 classes for usage: =lida::LocalMemoryPool= and =lida::GlobalMemoryPool=.
+- STL compatible. It ideally works with =std::list=, =std::set= and =std::map=.
+- Fast. You can even make it faster by preallocating memory with =reverse()=.
 
+* Installation
+
+  Add the repository as subdirectory in your project and 'link' the library to properly get includes:
+#+BEGIN_SRC cmake
+  add_subdirectory(Memory-Pool)
+  target_link_libraries(YOUR_TARGET_NAME PRIVATE lida::Memory-Pool)
+#+END_SRC
