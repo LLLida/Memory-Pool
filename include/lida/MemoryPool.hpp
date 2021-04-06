@@ -73,6 +73,13 @@ namespace lida
 		};
 	}
 
+	/**
+	 * @brief STL compatible allocator which allocates and deallocates
+	 * single objects fast.
+	 * @detail Use this allocator with containers that live long and
+	 * allocate thousands of objects.
+	 * @tparam T allocating type.
+	 */
 	template<typename T>
 	class LocalMemoryPool
 	{
@@ -87,6 +94,11 @@ namespace lida
 			using type = LocalMemoryPool<U>;
 		};
 
+		/**
+		 * @brief Allocate an `T`.
+		 * @param size made for compability with std::allocator_traits.
+		 * passing `size != 1` is undefined behaviour.
+		 */
 		T* allocate(std::size_t size)
 		{
 #ifndef NDEBUG
@@ -100,6 +112,12 @@ namespace lida
 			return reinterpret_cast<T*>(chunks.back().allocate(sizeof(T)));
 		}
 
+		/**
+		 * @brief Deallocate and `T`.
+		 * @param ptr pointer to object to deallocate.
+		 * @param size made for compability with std::allocator_traits.
+		 * passing `size != 1` is undefined behaviour.
+		 */
 		void deallocate(T* ptr, [[maybe_unused]] std::size_t size)
 		{
 			for (auto it = chunks.begin(); it != chunks.end(); ++it)
@@ -115,14 +133,28 @@ namespace lida
 			}
 		}
 
+		/**
+		 * @brief Preallocate memory.
+		 * @param numElements minimal count of objects to preallocate.
+		 */
 		void reserve(std::size_t numElements)
 		{
-			constexpr auto max = std::numeric_limits<uint8_t>::max();
-			chunks.reserve((numElements % max == 0) ?
-						   numElements / max : numElements / max + 1);
+			if (numElements > chunks.size())
+			{
+				constexpr auto max = std::numeric_limits<uint8_t>::max();
+				chunks.resize((numElements % max == 0) ?
+							  numElements / max : numElements / max + 1);
+			}
 		}
 	};
 
+	/**
+	 * @brief STL compatible allocator which allocates and deallocates
+	 * single objects fast. This allocator shares memory between instances.
+	 * @detail Use this allocator with containers that live short and
+	 * allocate thousands of objects.
+	 * @tparam T allocating type.
+	 */
 	template<typename T>
 	class GlobalMemoryPool
 	{
@@ -141,16 +173,30 @@ namespace lida
 			using type = GlobalMemoryPool<U>;
 		};
 
+		/**
+		 * @brief Allocate an object from shared storage.
+		 * @param size made for compability with std::allocator_traits.
+		 * passing `size != 1` is undefined behaviour.
+		 */
 		static T* allocate(std::size_t size)
 		{
 			return instance().allocate(size);
 		}
 
+		/**
+		 * @brief Deallocate an object from shared storage.
+		 * @param size made for compability with std::allocator_traits.
+		 * passing `size != 1` is undefined behaviour.
+		 */
 		static void deallocate(T* ptr, std::size_t size)
 		{
 			instance().deallocate(ptr, size);
 		}
 
+		/**
+		 * @brief Preallocate memory.
+		 * @param numElements minimal count of objects to preallocate.
+		 */
 		static void reserve(std::size_t numElements)
 		{
 			instance().reserve(numElements);		
