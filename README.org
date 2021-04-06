@@ -47,11 +47,14 @@ int main()
     std::cout << "};\n";
 }
 #+END_SRC
-=lida::LocalMemoryPool= is regular allocator like =std::allocator= but a bit faster. Each object of this class allocates own memory and manages it.
-=lida::GlobalMemoryPool= is different. It allocates memory for the whole class, each object share the same storage.
+- =lida::LocalMemoryPool= is regular allocator like =std::allocator= but a bit faster. Each object of this class allocates own memory and manages it.
+- =lida::GlobalMemoryPool= is different. It allocates memory for the whole class, each object share the same storage.
 This can lead to better performance(less allocations).
 
 * Limitation
 
   The memory pool can only allocate objects by one. It can not be used with containers like =std::vector= which allocate many objects at once. 
   
+* License
+
+  =GPLv3=
