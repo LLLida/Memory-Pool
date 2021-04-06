@@ -20,6 +20,7 @@
 In fact =lida::LocalMemoryPool= and =lida::GlobalMemoryPool= are just STL compatible allocators.
 Example:
 #+BEGIN_SRC cpp
+// modified https://en.cppreference.com/w/cpp/container/list
 #include <algorithm>
 #include <iostream>
 #include <list>
@@ -52,5 +53,5 @@ This can lead to better performance(less allocations).
 
 * Limitation
 
-  The memory pool can only allocate objects by one. It can not be used with containers like =std::vector= which allocate objects many at once. 
+  The memory pool can only allocate objects by one. It can not be used with containers like =std::vector= which allocate many objects at once. 
   
