@@ -1,0 +1,8 @@
+#+AUTHOR: Adil Mokhammad
+#+EMAIL: 0adilmohammad0@gmail.com
+
+* C++ header only memory pool library
+
+- Small. 1 header file with 2 classes for usage: _lida::LocalMemoryPool_ and _lida::GlobalMemoryPool_.
+- STL compatible. It ideally works with _std::list_, _std::set_ and _std::map_.
+- Fast. You can either make it faster by preallocating memory with _reverse()_.
