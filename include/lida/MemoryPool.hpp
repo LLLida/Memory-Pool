@@ -2,7 +2,9 @@
 
 #include <cstdint>
 #include <limits>
-#include <stdexcept>
+#ifndef NDEBUG
+#  include <stdexcept>
+#endif
 #include <vector>
 
 namespace lida
