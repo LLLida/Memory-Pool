@@ -126,7 +126,7 @@ namespace lida
 			auto& chunks = get_chunks();
 #ifndef NDEBUG
 			if (size != 1)
-				throw std::runtime_error("MemoryPool is only able for single object allocations");
+				throw std::runtime_error("MemoryPool is only able for allocating single objects");
 #endif
 			for (auto& chunk : chunks)
 				if (chunk.has_space())
