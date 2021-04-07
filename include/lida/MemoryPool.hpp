@@ -163,12 +163,11 @@ namespace lida
 		static void reserve(std::size_t numElements)
 		{
 			auto& chunks = get_chunks();
-			if (numElements > chunks.size())
-			{
-				constexpr auto max = std::numeric_limits<uint8_t>::max();
-				chunks.resize((numElements % max == 0) ?
-							  numElements / max : numElements / max + 1);
-			}
+			constexpr auto max = std::numeric_limits<uint8_t>::max();
+			std::size_t count = (numElements % max == 0) ?
+				numElements / max : numElements / max + 1;
+			if (count > chunks.size())
+				chunks.resize(count);
 		}
 	};
 }
