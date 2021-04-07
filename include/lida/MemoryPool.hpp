@@ -33,17 +33,10 @@ namespace lida
 			{
 				if (data) delete[] data;
 			}
-			MemoryChunk(const MemoryChunk&) : MemoryChunk() {}
 			MemoryChunk(MemoryChunk&& rhs) noexcept
 				: data(rhs.data), current(rhs.current), count(rhs.count)
 			{
 				rhs.data = nullptr;
-			}
-			MemoryChunk& operator=(const MemoryChunk& rhs) noexcept 
-			{ 
-				this->~MemoryChunk();
-				new(this) MemoryChunk(rhs);
-				return *this;
 			}
 			MemoryChunk& operator=(MemoryChunk&& rhs) noexcept 
 			{ 
