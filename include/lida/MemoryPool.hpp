@@ -135,7 +135,8 @@ namespace lida
 		 * @brief Allocate an object from shared storage.
 		 * @param size made for compability with std::allocator_traits.
 		 * passing `size != 1` is undefined behaviour.
-			 */
+		 */
+		[[nodiscard]]
 		static T* allocate(std::size_t size)
 		{
 			auto& chunks = get_chunks();
