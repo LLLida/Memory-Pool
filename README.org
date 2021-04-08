@@ -17,6 +17,8 @@
 
 * Usage
 
+** Basics
+
 In fact =lida::MemoryPool= is just STL compatible allocator.
 Example:
 #+BEGIN_SRC cpp
@@ -47,13 +49,16 @@ int main()
     std::cout << "};\n";
 }
 #+END_SRC
-- =lida::MemoryPool= allocates memory for the whole class, each object share the same storage.
-This can lead to better performance(less allocations).
+- =lida::MemoryPool= allocates memory for the whole class, each object share the same storage. This can lead to better performance(less allocations).
 
-* Limitation
+** Limitation
 
   The memory pool can only allocate objects by one. It can not be used with containers like =std::vector= which allocate many objects at once. 
   
+** Groups
+
+   As you could notice =lida::MemoryPool= has second template argument, group index. This allows you to use different storages on same types. It can be fast when different parts(threads) of your program allocate objects of same type. This may lead to better cache coherency.
+
 * License
 
   =GPLv3=
