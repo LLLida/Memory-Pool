@@ -109,7 +109,7 @@ namespace lida
 	 * allocate thousands of objects.
 	 * @tparam T allocating type.
 	 */
-	template<typename T>
+	template<typename T, std::size_t G = 0>
 	class MemoryPool
 	{
 	private:
@@ -120,6 +120,7 @@ namespace lida
 		}
 
 	public:
+		static constexpr std::size_t group = G;
 		using value_type = T;
 		template<typename U>
 		struct rebind
