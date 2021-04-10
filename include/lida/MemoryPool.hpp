@@ -157,7 +157,7 @@ namespace lida
 		 * @param size made for compability with std::allocator_traits.
 		 * passing `size != 1` is undefined behaviour.
 		 */
-		static void deallocate(T* ptr, std::size_t size)
+		static void deallocate(T* ptr, [[maybe_unused]] std::size_t size)
 		{
 			auto& chunks = get_chunks();
 			for (auto it = chunks.begin(); it != chunks.end(); ++it)
