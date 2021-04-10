@@ -107,6 +107,9 @@ namespace lida
 	 * single objects fast. This allocator shares memory between instances.
 	 * @detail Use this allocator with containers that live short and
 	 * allocate thousands of objects.
+	 * The allocator is not thread safe(for performance reason) so in
+	 * multithreaded program use groups if you have many containers which use
+	 * the same allocator or mutexes otherwise.
 	 * @tparam T allocating type.
 	 * @tparam G allocator's group use different storages on same type.
 	 * It can be useful when you more than one performance critical threads
