@@ -41,7 +41,7 @@ namespace lida
 				: current(0), count(max)
 			{
 				data = new uint8_t[ObjSize * max];
-				for (std::size_t i = 0; i <= max; i++)
+				for (std::size_t i = 0; i < max; i++)
 					data[i * ObjSize] = i + 1;
 			}
 			~MemoryChunk() noexcept
