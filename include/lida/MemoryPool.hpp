@@ -125,7 +125,7 @@ namespace lida
 		template<typename U>
 		struct rebind
 		{
-			using type = MemoryPool<U>;
+			using other = MemoryPool<U>;
 		};
 
 		MemoryPool() = default;
