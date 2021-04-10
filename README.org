@@ -5,7 +5,7 @@
 
 - Small. 1 header file with 1 class for usage: =lida::MemoryPool=.
 - STL compatible. It ideally works with =std::list=, =std::set= and =std::map=.
-- Fast. You can even make it faster by preallocating memory with =reverse()=.
+- Fast. You can even make it faster by preallocating memory with =reserve()=.
 
 * Installation
 
