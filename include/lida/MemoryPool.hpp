@@ -108,6 +108,9 @@ namespace lida
 	 * @detail Use this allocator with containers that live short and
 	 * allocate thousands of objects.
 	 * @tparam T allocating type.
+	 * @tparam G allocator's group use different storages on same type.
+	 * It can be useful when you more than one performance critical threads
+	 * which allocate objects of the same type.
 	 */
 	template<typename T, std::size_t G = 0>
 	class MemoryPool
