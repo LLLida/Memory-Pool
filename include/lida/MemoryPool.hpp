@@ -62,6 +62,7 @@ namespace lida
 				return *this;
 			}
 
+			[[nodiscard]]
 			void* allocate()
 			{
 #ifndef NDEBUG
