@@ -48,6 +48,8 @@ namespace lida
 			{
 				if (data) delete[] data;
 			}
+			MemoryChunk(const MemoryChunk&) = delete;
+			MemoryChunk& operator=(const MemoryChunk&) = delete;
 			MemoryChunk(MemoryChunk&& rhs) noexcept
 				: data(rhs.data), current(rhs.current), count(rhs.count)
 			{
