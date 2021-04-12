@@ -147,7 +147,7 @@ namespace lida
 		 * passing `size != 1` is undefined behaviour.
 		 */
 		[[nodiscard]]
-		static T* allocate(std::size_t size)
+		static T* allocate([[maybe_unused]] std::size_t size)
 		{
 			auto& chunks = get_chunks();
 #ifndef NDEBUG
