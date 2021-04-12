@@ -202,7 +202,7 @@ namespace lida
 				return true;
 			}
 		template<typename U, std::size_t H>
-		constexpr bool operator==(const MemoryPool<U, H>& rhs)
+		constexpr bool operator!=(const MemoryPool<U, H>& rhs)
 			{
 				return !(*this == rhs);
 			}
