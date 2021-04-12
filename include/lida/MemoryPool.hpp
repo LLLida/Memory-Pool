@@ -195,5 +195,16 @@ namespace lida
 			if (count > chunks.size())
 				chunks.resize(count);
 		}
+
+		template<typename U, std::size_t H>
+		constexpr bool operator==(const MemoryPool<U, H>&)
+			{
+				return true;
+			}
+		template<typename U, std::size_t H>
+		constexpr bool operator==(const MemoryPool<U, H>& rhs)
+			{
+				return !(*this == rhs);
+			}
 	};
 }
